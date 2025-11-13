@@ -22,6 +22,7 @@ def make_run_report(
     namespace: str = None,
     instance_image_tag: str = "latest",
     env_image_tag: str = "latest",
+    report_dir: Optional[Path] = None,
 ) -> Path:
     """
     Make a final evaluation and run report of the instances that have been run.
@@ -149,8 +150,8 @@ def make_run_report(
                 "unremoved_images": list(sorted(unremoved_images)),
             }
         )
-    report_file = Path(
-        list(predictions.values())[0][KEY_MODEL].replace("/", "__")
+    report_file = report_dir / Path(
+         list(predictions.values())[0][KEY_MODEL].replace("/", "__")
         + f".{run_id}"
         + ".json"
     )

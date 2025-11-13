@@ -1,4 +1,7 @@
 from __future__ import annotations
+import io
+import os
+import tarfile
 
 import docker
 import json
@@ -77,6 +80,7 @@ def run_instance(
     run_id: str,
     timeout: int | None = None,
     rewrite_reports: bool = False,
+    transform_dir: str = None,
 ) -> dict:
     """
     Run a single instance with the given prediction.
@@ -154,6 +158,15 @@ def run_instance(
         )
         container.start()
         logger.info(f"Container for {instance_id} started: {container.id}")
+
+        if transform_dir is not None:
+            # Copy transformed code files to container
+            transformed_instance_dir = Path(transform_dir)
+            if transformed_instance_dir.exists():
+                logger.info(
+                    f"Copying transformed code files from {transformed_instance_dir} to container..."
+                )
+                copy_to_container(container, transformed_instance_dir, PurePosixPath(DOCKER_WORKDIR))
 
         # Copy model prediction as patch file to container
         patch_file = Path(log_dir / "patch.diff")
@@ -286,6 +299,7 @@ def run_instances(
     instance_image_tag: str = "latest",
     env_image_tag: str = "latest",
     rewrite_reports: bool = False,
+    transform_dir: str = None,
 ):
     """
     Run all instances for the given predictions in parallel.
@@ -344,6 +358,7 @@ def run_instances(
                 run_id,
                 timeout,
                 rewrite_reports,
+                transform_dir,
             )
         )
 
@@ -489,6 +504,7 @@ def main(
     instance_image_tag: str = "latest",
     env_image_tag: str = "latest",
     report_dir: str = ".",
+    transform_dir: str = None,
 ):
     """
     Run evaluation harness for the given dataset and predictions.
@@ -562,6 +578,7 @@ def main(
             instance_image_tag=instance_image_tag,
             env_image_tag=env_image_tag,
             rewrite_reports=rewrite_reports,
+            transform_dir=transform_dir,
         )
 
     # clean images + make final report
@@ -574,6 +591,7 @@ def main(
         namespace,
         instance_image_tag,
         env_image_tag,
+        report_dir=Path(report_dir),
     )
 
 
@@ -672,6 +690,8 @@ if __name__ == "__main__":
 
     # Modal execution args
     parser.add_argument("--modal", type=str2bool, default=False, help="Run on Modal")
+    # transformed_code_location
+    parser.add_argument("--transform_dir", type=str, default=None, help="Directory for transformed code files")
 
     args = parser.parse_args()
     main(**vars(args))
