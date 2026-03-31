@@ -81,6 +81,7 @@ def run_instance(
     timeout: int | None = None,
     rewrite_reports: bool = False,
     transform_dir: str = None,
+    report_dir: Path | None = None,
 ) -> dict:
     """
     Run a single instance with the given prediction.
@@ -103,7 +104,7 @@ def run_instance(
     # Set up report file
     report_path = log_dir / LOG_REPORT
     if rewrite_reports:
-        test_output_path = log_dir / LOG_TEST_OUTPUT
+        test_output_path = (report_dir if report_dir is not None else log_dir) / LOG_TEST_OUTPUT
         if not test_output_path.exists():
             raise ValueError(f"Test output file {test_output_path} does not exist")
         report = get_eval_report(
@@ -144,7 +145,7 @@ def run_instance(
 
     # Set up logger
     log_dir.mkdir(parents=True, exist_ok=True)
-    log_file = log_dir / LOG_INSTANCE
+    log_file = (report_dir if report_dir is not None else log_dir) / LOG_INSTANCE
     logger = setup_logger(instance_id, log_file)
 
     # Run the instance
@@ -219,7 +220,7 @@ def run_instance(
         test_output, timed_out, total_runtime = exec_run_with_timeout(
             container, "/bin/bash /eval.sh", timeout
         )
-        test_output_path = log_dir / LOG_TEST_OUTPUT
+        test_output_path = (report_dir if report_dir is not None else log_dir) / LOG_TEST_OUTPUT
         logger.info(f"Test runtime: {total_runtime:_.2f} seconds")
         with open(test_output_path, "w") as f:
             f.write(test_output)
@@ -300,6 +301,7 @@ def run_instances(
     env_image_tag: str = "latest",
     rewrite_reports: bool = False,
     transform_dir: str = None,
+    report_dir: Path | None = None,
 ):
     """
     Run all instances for the given predictions in parallel.
@@ -359,6 +361,7 @@ def run_instances(
                 timeout,
                 rewrite_reports,
                 transform_dir,
+                report_dir,
             )
         )
 
@@ -579,6 +582,7 @@ def main(
             env_image_tag=env_image_tag,
             rewrite_reports=rewrite_reports,
             transform_dir=transform_dir,
+            report_dir=Path(report_dir) if report_dir is not None else None,
         )
 
     # clean images + make final report
