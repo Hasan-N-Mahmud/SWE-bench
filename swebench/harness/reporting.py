@@ -1,3 +1,5 @@
+import shutil
+
 import docker
 import json
 from pathlib import Path
@@ -59,11 +61,10 @@ def make_run_report(
         if prediction.get(KEY_PREDICTION, None) in ["", None]:
             empty_patch_ids.add(instance_id)
             continue
-        report_file = (
-            (report_dir if report_dir not in (None, Path(".") ) else RUN_EVALUATION_LOG_DIR / run_id / prediction[KEY_MODEL].replace("/", "__") / prediction[KEY_INSTANCE_ID])
-            / LOG_REPORT
-        )
+        report_file = RUN_EVALUATION_LOG_DIR / run_id / prediction[KEY_MODEL].replace("/", "__") / prediction[KEY_INSTANCE_ID] / LOG_REPORT
         if report_file.exists():
+            if report_dir is not None:
+                shutil.copy2(report_file, report_dir)
             completed_ids.add(instance_id)
             try:
                 content = report_file.read_text().strip()
