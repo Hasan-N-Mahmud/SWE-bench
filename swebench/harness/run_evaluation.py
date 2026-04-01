@@ -582,7 +582,7 @@ def main(
             env_image_tag=env_image_tag,
             rewrite_reports=rewrite_reports,
             transform_dir=transform_dir,
-            report_dir=Path(report_dir) if report_dir is not None else None,
+            report_dir=Path(report_dir) if report_dir not in (None, Path(".") ) else None,
         )
 
     # clean images + make final report

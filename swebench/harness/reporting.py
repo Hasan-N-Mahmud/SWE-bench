@@ -60,7 +60,7 @@ def make_run_report(
             empty_patch_ids.add(instance_id)
             continue
         report_file = (
-            (report_dir if report_dir is not None else RUN_EVALUATION_LOG_DIR / run_id / prediction[KEY_MODEL].replace("/", "__") / prediction[KEY_INSTANCE_ID])
+            (report_dir if report_dir not in (None, Path(".") ) else RUN_EVALUATION_LOG_DIR / run_id / prediction[KEY_MODEL].replace("/", "__") / prediction[KEY_INSTANCE_ID])
             / LOG_REPORT
         )
         if report_file.exists():
