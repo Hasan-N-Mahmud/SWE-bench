@@ -96,6 +96,10 @@ def run_instance(
         timeout (int): Timeout for running tests
         rewrite_reports (bool): True if eval run is just to reformat existing report
     """
+    # Validate transform_dir early
+    if transform_dir is not None and not Path(transform_dir).exists():
+        raise ValueError(f"transform_dir does not exist: {transform_dir}")
+
     # Set up logging directory
     instance_id = test_spec.instance_id
     model_name_or_path = pred.get(KEY_MODEL, "None").replace("/", "__")
